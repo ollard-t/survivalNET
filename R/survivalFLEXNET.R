@@ -597,13 +597,19 @@ survivalFLEXNET <- function(formula, data, ratetable, m=3, mpos = NULL, mquant =
     names(loglik) <- c("Null Model")
   }
   
+  if(is.null(covnames) & is.null(timevar)){
+    optim_res <- logllmax0 
+  }else{
+    optim_res <- logllmax1
+  }
+   
   res <- list(
     formula = formula,
     coefficients =  coefficients,
     var = var,
     t.table = t.table,
     loglik = loglik,
-    optim_res = logllmax1,
+    optim_res = optim_res,
     linear.predictors = as.vector(lp),
     missing = !na,
     n = length(time),
