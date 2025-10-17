@@ -39,7 +39,7 @@ splinecube <- function(time, gamma, m, mpos = NULL, mquant = NULL)
       
       res <- list(
         spln = spln,
-        mpos = mpos)
+        knots = mpos)
   }else{
       phi <- c()
       nu <- c()
