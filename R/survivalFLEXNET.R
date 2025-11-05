@@ -486,6 +486,7 @@ survivalFLEXNET <- function(formula, data, ratetable, m=3, mpos = NULL, mquant =
   
   ##récupération de mpos et mquant si ils n'ont pas été spécifiés dans la formule.
   
+  if (is.null(xlevels)) {
   if(is.null(mpos)){
     if(is.null(mquant)){
       a <- c()
@@ -499,7 +500,7 @@ survivalFLEXNET <- function(formula, data, ratetable, m=3, mpos = NULL, mquant =
       mpos <- quantile(log(time), probs = a)
     }
   }
-  
+  }
   ## same for mpos_s
   if (!is.null(xlevels)) {
     
