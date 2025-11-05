@@ -1,6 +1,6 @@
 
 survivalFLEXNET <- function(formula, data, ratetable, m=3, mpos = NULL, mquant = NULL, init = NULL, 
-                            delta_th = 0, weights=NULL, m_s = NULL, mpos_s = NULL, mquant_s = NULL, Kref = NULL, Hess = FALSE)
+                             delta_th = 0, weights=NULL, m_s = NULL, mpos_s = NULL, mquant_s = NULL, Kref = NULL, Hess = FALSE)
 {
   
   ####### check errors
@@ -58,7 +58,6 @@ survivalFLEXNET <- function(formula, data, ratetable, m=3, mpos = NULL, mquant =
     return(list(age = age, year = year, sex = sex))
   }
   strata_var = unlist(lapply(strata_terms, extract_vars))
-  if(!is.null(strata_var) && strata_var %in% covnames) stop("The stratified covariate also appears as a covariate in the formula.")
   if(is.null(strata_var)){
     timevar = strata_var
     xlevels = NULL
@@ -183,6 +182,7 @@ survivalFLEXNET <- function(formula, data, ratetable, m=3, mpos = NULL, mquant =
       
       value <- 0
       
+      mpos_ref <- splinecube(time[covatime == Kref], gamma_base, m)$knots
       for (k in K) {
         idx <- covatime == k
         
@@ -193,15 +193,16 @@ survivalFLEXNET <- function(formula, data, ratetable, m=3, mpos = NULL, mquant =
         wk <- w[idx]
         
         # baseline spline
-        spl_base  <- splinecube(timek, gamma_base, m, mpos, mquant)$spln
-        spl_baseP <- splinecubeP(timek, gamma_base, m, mpos, mquant)$spln
+        spl_base  <- splinecube(timek, gamma_base, m, mpos_ref)$spln
+        spl_baseP <- splinecubeP(timek, gamma_base, m, mpos_ref)$spln
         
         # stratum-specific spline only if not reference
         if (k != Kref) {
           col_idx <- which(nonref == k)
           gammak <- gamma_strata[, col_idx]  
-          splk  <- splinecube(timek, gammak, m_s, mpos_s, mquant_s)$spln
-          splkP <- splinecubeP(timek, gammak, m_s, mpos_s, mquant_s)$spln
+          mpos_s_k <- if (is.list(mpos_s)) mpos_s[[as.character(k)]] else mpos_s
+          splk  <- splinecube(timek, gammak, m_s, mpos_s_k, mquant_s)$spln
+          splkP <- splinecubeP(timek, gammak, m_s, mpos_s_k, mquant_s)$spln
         } else {
           splk <- 0
           splkP <- 0
@@ -487,10 +488,13 @@ survivalFLEXNET <- function(formula, data, ratetable, m=3, mpos = NULL, mquant =
   
   if(is.null(mpos)){
     if(is.null(mquant)){
+      idx <- timevarnum == Kref
+      
+      timeref <- time[idx]
       a <- c()
       for(i in (0:(m+1))){
         a <- c(a,i/(m+1))}
-      mpos <- quantile(log(time), probs = a)
+      mpos <- quantile(log(timeref), probs = a)
       mpos <- as.numeric(mpos)
       mquant <- a 
     }else{
@@ -501,18 +505,20 @@ survivalFLEXNET <- function(formula, data, ratetable, m=3, mpos = NULL, mquant =
   
   ## same for mpos_s
   if (!is.null(xlevels)) {
-    if(is.null(mpos_s)){
-      if(is.null(mquant_s)){
-        a <- c()
-        for(i in (0:(m_s+1))){
-          a <- c(a,i/(m_s+1))}
-        mpos_s <- quantile(log(time), probs = a)
-        mpos_s <- as.numeric(mpos_s)
-        mquant_s <- a 
-      }else{
-        a <- c(mquant_s)
-        mpos_s <- quantile(log(time), probs = a)
-      }
+    mpos_s <- list()
+    for (k in nonref) {
+      idx <- timevarnum == k
+      
+      timek <- time[idx]
+      
+      a <- c()
+      for(i in (0:(m_s+1))){
+        a <- c(a,i/(m_s+1))}
+      mpos_s_k <- quantile(log(timek), probs = a)
+      mpos_s_k <- as.numeric(mpos_s_k)
+      mquant_s <- a 
+      
+      mpos_s[[k]] <- mpos_s_k
     }
   }
   
@@ -602,7 +608,7 @@ survivalFLEXNET <- function(formula, data, ratetable, m=3, mpos = NULL, mquant =
   }else{
     optim_res <- logllmax1
   }
-   
+  
   res <- list(
     formula = formula,
     coefficients =  coefficients,
