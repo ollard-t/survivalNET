@@ -488,13 +488,10 @@ survivalFLEXNET <- function(formula, data, ratetable, m=3, mpos = NULL, mquant =
   
   if(is.null(mpos)){
     if(is.null(mquant)){
-      idx <- timevarnum == Kref
-      
-      timeref <- time[idx]
       a <- c()
       for(i in (0:(m+1))){
         a <- c(a,i/(m+1))}
-      mpos <- quantile(log(timeref), probs = a)
+      mpos <- quantile(log(time), probs = a)
       mpos <- as.numeric(mpos)
       mquant <- a 
     }else{
@@ -505,6 +502,24 @@ survivalFLEXNET <- function(formula, data, ratetable, m=3, mpos = NULL, mquant =
   
   ## same for mpos_s
   if (!is.null(xlevels)) {
+    
+    if(is.null(mpos)){
+      if(is.null(mquant)){
+        idx <- timevarnum == Kref
+        
+        timeref <- time[idx]
+        a <- c()
+        for(i in (0:(m+1))){
+          a <- c(a,i/(m+1))}
+        mpos <- quantile(log(timeref), probs = a)
+        mpos <- as.numeric(mpos)
+        mquant <- a 
+      }else{
+        a <- c(mquant)
+        mpos <- quantile(log(time), probs = a)
+      }
+    }
+    
     mpos_s <- list()
     for (k in nonref) {
       idx <- timevarnum == k
