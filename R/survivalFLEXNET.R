@@ -222,12 +222,12 @@ survivalFLEXNET <- function(formula, data, ratetable, m=3, mpos = NULL, mquant =
     label <- covnames
     
     if (m == 0) {
-      gamma0_names <- c("gamma0_0", "gamma0_1")
+      gamma0_names <- c("gamma_0", "gamma_1")
     } else {
-      gamma0_names <- c("gamma0_0", "gamma0_1", paste0("gamma0_", 2:(m+1)))
+      gamma0_names <- c("gamma_0", "gamma_1", paste0("gamma_", 2:(m+1)))
     }
     
-    for (i in setdiff(timevarnames, Kref)) {
+    for (i in setdiff(timevarnames, names(correstab[Kref]))) {
       if (m_s == 0) {
         assign(paste0("gamma_names_", i),
                c(paste0("gamma", i, "_0"), paste0("gamma", i, "_1")))
@@ -240,7 +240,7 @@ survivalFLEXNET <- function(formula, data, ratetable, m=3, mpos = NULL, mquant =
     
     
     label <- c(covnames, gamma0_names)
-    for (i in setdiff(timevarnames, Kref)) {
+    for (i in setdiff(timevarnames, names(correstab[Kref]))) {
       label <- c(label, get(paste0("gamma_names_", i)))
     }
     
