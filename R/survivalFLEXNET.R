@@ -178,45 +178,75 @@ survivalFLEXNET <- function(formula, data, ratetable, m=3, mpos = NULL, mquant =
     
     nonref <- sort(setdiff(K, Kref))  
     
+    n_total <- length(time)
+    max_cols <- 2 + m 
+    max_s_cols <- 2 +m_s
+    s_base_mat  <- matrix(0, nrow = n_total, ncol = max_cols)
+    ds_base_mat <- matrix(0, nrow = n_total, ncol = max_cols)
+    s_strata_mat  <- matrix(0, nrow = n_total, ncol = max_s_cols)
+    ds_strata_mat <- matrix(0, nrow = n_total, ncol = max_s_cols)
+    
+    mpos_ref <- splinecube(time[timevarnum == Kref], rep(0, m+2), m)$knots
+    
+    for(k in K){
+      idx <- timevarnum == k
+      timek <- time[idx]
+      xk <- log(timek)
+      
+      tmp  <- splinecube(timek, rep(0, m+2), m, mpos_ref)
+      tmpP <- splinecubeP(timek, rep(0, m+2), m, mpos_ref)
+      
+      nu  <- if(!is.null(tmp$nu))  tmp$nu  else matrix(0, nrow=length(timek), ncol=0)
+      nuP <- if(!is.null(tmpP$nu)) tmpP$nu else matrix(0, nrow=length(timek), ncol=0)
+      
+      s_base_mat[idx, 1] <- 1           
+      s_base_mat[idx, 2] <- xk          
+      if(ncol(nu) > 0) s_base_mat[idx, 3:(2+ncol(nu))] <- nu
+      
+      ds_base_mat[idx, 1] <- 0          
+      ds_base_mat[idx, 2] <- 1           
+      if(ncol(nuP) > 0) ds_base_mat[idx, 3:(2+ncol(nuP))] <- nuP
+    }
+    
+    for (k in nonref) {
+      idx <- timevarnum == k
+      timek <- time[idx]
+      xk <- log(timek)
+      
+      mpos_s_k <- if(is.list(mpos_s)) mpos_s[[as.character(k)]] else mpos_s
+      tmp  <- splinecube(timek, rep(0, m_s+2), m_s, mpos_s_k, mquant_s)
+      tmpP <- splinecubeP(timek, rep(0, m_s+2), m_s, mpos_s_k, mquant_s)
+      
+      nu  <- if(!is.null(tmp$nu)) tmp$nu else matrix(0, nrow = length(timek), ncol = 0)
+      nuP <- if(!is.null(tmpP$nu)) tmpP$nu else matrix(0, nrow = length(timek), ncol = 0)
+      
+      s_strata_mat[idx, 1:(2+ncol(nu))]  <- cbind(1, xk, nu)
+      ds_strata_mat[idx, 1:(2+ncol(nuP))] <- cbind(0, 1, nuP)
+    }
+    
     logll2 <- function(beta, gamma_base, gamma_strata, time, event, cova, covatime, hP, w, m, mpos, mquant, K) {
       
-      value <- 0
+      spl_base  <- s_base_mat %*% gamma_base
+      spl_baseP <- ds_base_mat %*% gamma_base
       
-      mpos_ref <- splinecube(time[covatime == Kref], gamma_base, m)$knots
-      for (k in K) {
-        idx <- covatime == k
-        
-        timek <- time[idx]
-        eventk <- event[idx]
-        hPk <- hP[idx]
-        covak <- cova[idx, , drop = FALSE]
-        wk <- w[idx]
-        
-        # baseline spline
-        spl_base  <- splinecube(timek, gamma_base, m, mpos_ref)$spln
-        spl_baseP <- splinecubeP(timek, gamma_base, m, mpos_ref)$spln
-        
-        # stratum-specific spline only if not reference
-        if (k != Kref) {
+      spl_strata  <- numeric(n_total)
+      spl_strataP <- numeric(n_total)
+      
+      if (length(nonref) > 0) {
+        for (k in nonref) {
+          idx <- covatime == k
           col_idx <- which(nonref == k)
-          gammak <- gamma_strata[, col_idx]  
-          mpos_s_k <- if (is.list(mpos_s)) mpos_s[[as.character(k)]] else mpos_s
-          splk  <- splinecube(timek, gammak, m_s, mpos_s_k, mquant_s)$spln
-          splkP <- splinecubeP(timek, gammak, m_s, mpos_s_k, mquant_s)$spln
-        } else {
-          splk <- 0
-          splkP <- 0
+          gammak <- gamma_strata[, col_idx]
+          spl_strata[idx]  <- s_strata_mat[idx, , drop=FALSE] %*% gammak
+          spl_strataP[idx] <- ds_strata_mat[idx, , drop=FALSE] %*% gammak
         }
-        
-        linpred <- spl_base + splk + covak %*% beta
-        
-        value_k <- -1 * sum(wk * (
-          eventk * log(hPk + (1/timek) * (spl_baseP + splkP) * exp(linpred))) -
-            exp(linpred))
-        
-        value <- value + value_k
       }
-      return(value)
+      
+      linpred <- spl_base + spl_strata + cova %*% beta
+      
+      ll <- - w * (event * log(hP + (1/time) * (spl_baseP + spl_strataP) * exp(linpred)) -
+                 exp(linpred))
+      sum(ll)
     }
     
     label <- covnames
@@ -322,42 +352,77 @@ survivalFLEXNET <- function(formula, data, ratetable, m=3, mpos = NULL, mquant =
     
     nonref <- sort(setdiff(K, Kref))  
     
+    n_total <- length(time)
+    max_cols <- 2 + m
+    max_s_cols <- 2 + m_s
+    s_base_mat  <- matrix(0, nrow = n_total, ncol = max_cols)
+    ds_base_mat <- matrix(0, nrow = n_total, ncol = max_cols)
+    s_strata_mat  <- matrix(0, nrow = n_total, ncol = max_s_cols)
+    ds_strata_mat <- matrix(0, nrow = n_total, ncol = max_s_cols)
+    
+    mpos_ref <- splinecube(time[timevarnum == Kref], rep(0, m+2), m)$knots
+    
+    for (k in K) {
+      idx <- timevarnum == k
+      timek <- time[idx]
+      xk <- log(timek)
+      
+      tmp  <- splinecube(timek, rep(0, m+2), m, mpos_ref)
+      tmpP <- splinecubeP(timek, rep(0, m+2), m, mpos_ref)
+      
+      nu  <- if(!is.null(tmp$nu)) tmp$nu else matrix(0, nrow=length(timek), ncol=0)
+      nuP <- if(!is.null(tmpP$nu)) tmpP$nu else matrix(0, nrow=length(timek), ncol=0)
+      
+      # baseline matrix
+      s_base_mat[idx, 1] <- 1
+      s_base_mat[idx, 2] <- xk
+      if(ncol(nu) > 0) s_base_mat[idx, 3:(2+ncol(nu))] <- nu
+      
+      ds_base_mat[idx, 1] <- 0
+      ds_base_mat[idx, 2] <- 1
+      if(ncol(nuP) > 0) ds_base_mat[idx, 3:(2+ncol(nuP))] <- nuP
+      
+    }
+      for (k in nonref) {
+        idx <- timevarnum == k
+        timek <- time[idx]
+        xk <- log(timek)
+        
+        mpos_s_k <- if(is.list(mpos_s)) mpos_s[[as.character(k)]] else mpos_s
+        tmp_s  <- splinecube(timek, rep(0, m_s+2), m_s, mpos_s_k, mquant_s)
+        tmp_sP <- splinecubeP(timek, rep(0, m_s+2), m_s, mpos_s_k, mquant_s)
+        
+        nu <- if(!is.null(tmp_s$nu)) tmp_s$nu else matrix(0, nrow=length(timek), ncol=0)
+        nuP <- if(!is.null(tmp_sP$nu)) tmp_sP$nu else matrix(0, nrow=length(timek), ncol=0)
+        
+        s_strata_mat[idx, 1:(2+ncol(nu))]  <- cbind(1, xk, nu)
+        ds_strata_mat[idx, 1:(2+ncol(nuP))] <- cbind(0, 1, nuP)
+
+      }
+    
+    
     logll3 <- function(gamma_base, gamma_strata, time, event, covatime, hP, w, m, mpos, mquant, K){
       
-      value <- 0
+      spl_base  <- s_base_mat %*% gamma_base
+      spl_baseP <- ds_base_mat %*% gamma_base
       
-      for(k in K){
-        
-        idx <- covatime == k
-        
-        timek <- time[idx]
-        eventk <- event[idx]
-        hPk <- hP[idx]
-        covak <- cova[idx, , drop = FALSE]
-        wk <- w[idx]
-        
-        spl_base  <- splinecube(timek, gamma_base, m, mpos, mquant)$spln
-        spl_baseP <- splinecubeP(timek, gamma_base, m, mpos, mquant)$spln
-        
-        if (k != Kref) {
+      spl_strata  <- numeric(n_total)
+      spl_strataP <- numeric(n_total)
+      
+      if(length(nonref) > 0) {
+        for (k in nonref) {
+          idx <- covatime == k
           col_idx <- which(nonref == k)
-          gammak <- gamma_strata[, col_idx]  
-          splk  <- splinecube(timek, gammak, m_s, mpos_s, mquant_s)$spln
-          splkP <- splinecubeP(timek, gammak, m_s, mpos_s, mquant_s)$spln
-        } else {
-          splk <- 0
-          splkP <- 0
+          gammak <- gamma_strata[, col_idx]
+          spl_strata[idx]  <- s_strata_mat[idx, , drop=FALSE] %*% gammak
+          spl_strataP[idx] <- ds_strata_mat[idx, , drop=FALSE] %*% gammak
         }
-        
-        linpred <- spl_base + splk 
-        
-        value_k <- -1 * sum(wk * (
-          eventk * log(hPk + (1/timek) * (spl_baseP + splkP) * exp(linpred))) -
-            exp(linpred))
-        
-        value <- value + value_k
       }
-      return(value)
+      
+      linpred <- spl_base + spl_strata
+     
+      ll <- - w * (event * log(hP + (1/time) * (spl_baseP + spl_strataP) * exp(linpred)) - exp(linpred))
+      sum(ll)
     }
     
     if (m == 0) {
