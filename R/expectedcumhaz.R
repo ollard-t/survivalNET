@@ -29,96 +29,61 @@ expectedcumhaz <- function(ratetable, age, year, sex, time, method="exact", subd
     return(integrateA(Vectorize(.f), lower=0, upper=time, subdivisions = subdivisions)$value)
   }
   
-  if(method == "table"){
-
-    birth_md <- format(as.Date(year-age,
-                  origin = "1960-1-1"), "%m-%d")
+  if (method == "table") {
     
-    if(birth_md == "02-29"){birth_md <- "03-01"}
-    
-    bday <- as.Date(paste0(as.numeric(format(as.Date(year,
-                    origin = "1960-01-01"), "%Y")),
-                     paste0("-", birth_md)) ) 
-    
-    next_y <- as.Date(paste0(as.numeric(format(as.Date(year,
-                              origin = "1960-01-01"),"%Y")) + 1, "-01-01") ) 
-                      
-    process_dates <- function(bday, next_y, end_date){
-      bdays <- c()
-      new_years <- c()
-      y10 = as.numeric(difftime("1970-01-01","1960-01-01"))
+    table_scalar <- function(t) {
+      birth_md <- format(
+        as.Date(year - age, origin = "1960-01-01"),
+        "%m-%d"
+      )
+      if (birth_md == "02-29") birth_md <- "03-01"
       
-      while (bday <= end_date | next_y <= end_date) {
-        if (bday <= end_date) {
-          bdays <- c(bdays, bday)
-          bday <- bday + new("Period", second = 0, year = 1, month = 0,  
-                             day = 0, hour = 0, minute = 0)
-        }
-        if (next_y <= end_date) {
-          new_years <- c(new_years, next_y)
-          next_y <- next_y + new("Period", second = 0, year = 1, month = 0, 
-                                 day = 0, hour = 0, minute = 0)
-        }
-      }
+      bday <- as.Date(
+        paste0(
+          format(as.Date(year, origin = "1960-01-01"), "%Y"),
+          "-", birth_md
+        )
+      )
       
-      return(list(birthdays = bdays+y10, new_years = new_years+y10))
+      next_y <- as.Date(
+        paste0(
+          as.numeric(format(as.Date(year, origin = "1960-01-01"), "%Y")) + 1,
+          "-01-01"
+        )
+      )
+      
+      end_date <- as.Date(year + t, origin = "1960-01-01")
+      
+      dates <- sort(unique(c(
+        as.Date(year, origin = "1960-01-01"),
+        bday + 365.24 * seq_len(200),
+        next_y + 365.24 * seq_len(200),
+        end_date
+      )))
+      dates <- dates[dates <= end_date]
+      
+      delta <- as.numeric(diff(dates))
+      
+      age_i  <- floor((age + cumsum(c(0, delta[-length(delta)]))) / 365.24)
+      year_i <- as.numeric(format(dates[-length(dates)], "%Y"))
+      
+      age_i  <- pmin(age_i,  max(as.numeric(dimnames(ratetable)[[1]])))
+      year_i <- pmin(year_i, max(as.numeric(dimnames(ratetable)[[2]])))
+      
+      haz <- ratetable[
+        as.character(age_i),
+        as.character(year_i),
+        sex
+      ]
+      
+      sum(haz * delta)
     }
     
-    results <- c()
-    delta <- c()
-
-    end_date <- as.Date(year + time, origin = "1960-01-01")
-      
-    result <- process_dates(bday, next_y, end_date)
-
-    results <- result
-    results <- c(as.Date(year,origin = "1960-01-01"),as.Date(sort(c(results$birthdays,
-                 results$new_years, end_date+ as.numeric(difftime("1970-01-01",
-                 "1960-01-01")) )), origin = "1960-01-01"))
-   
-    delta <- as.numeric(difftime(results[-1], 
-                 results[-length(results)], units = "days"))
+    results <- vapply(time, table_scalar, numeric(1))
     
-    if( length(delta) %% 2 == 0){
-      cond <- length(delta)/2 - 1 
-      pair = TRUE
-      }else{
-      cond <- floor(length(delta)/2) 
-      pair = FALSE}
-    ##first part, if the anniversary is before the diag date
-    if(bday < next_y ){
-      haz_values <- c() 
-   
-      for (i in 0:cond ) {
-        for (j in 0:1) {
-         haz_values <- c(haz_values,
-                       ratetable[as.character( pmin(floor(age/365.24 + i +j ),
-                                max(as.numeric(names(ratetable[, "2000", "male"])))) ),
-                                as.character( pmin( as.numeric(format( as.Date(year, origin = "1960-01-01"), "%Y" ) )  + i,
-                                max(as.numeric(names(ratetable["51", , "male"])))) ),
-                                sex])
-       }
-      }
-      if (pair == FALSE){haz_values <- haz_values[-length(haz_values)]}  
-   } 
-    ## deuxieme partie de la fonction
-    if(bday > next_y){
-      haz_values <- c() 
-      
-      for (i in 0:cond) {
-        for (j in 0:1) {
-          haz_values <- c(haz_values,
-                          ratetable[as.character( floor(age/365.24 + i ) ),
-                                    as.character( as.numeric(format( as.Date(year, origin = "1960-01-01"), "%Y" ) )  + i+j) ,sex])
-        }
-      }
-      if (pair == FALSE){haz_values <- haz_values[-length(haz_values)]}  
-      
-    }
-    
-    cumhaz <- haz_values%*%delta
-    return(cumhaz)
+    return(matrix(results, ncol =1))
   }
+  
 }
 
 
