@@ -11,7 +11,7 @@ Cross-validation method for the hyper-parameters of an object of class \code{sur
 \usage{
 cvFLEXNET(formula, pro.time=NULL, data, ratetable, cv=10, 
                              m = 2, mpos = NULL, mquant = NULL, init = NULL,
-                             delta_th = 0, weights = NULL, m_s = NULL, Kref = NULL, metric = "ibs")
+                             delta_th = 0, weights = NULL, m_s = NULL, Kref = NULL)
 }
 
 \arguments{
@@ -42,8 +42,7 @@ individuals. By default, the weights equal 1.}
 \item{m_s}{A list of numeric values of the number of internal knots wanted for the splines for each level of stratification. With the boundary knots, there will
 be m_s+2 knots.}
 \item{Kref}{The level of reference when stratifying on a covariate. Default value is NULL. If NULL the value taken will be the maximum one (if numeric) or the last alphabetically (if character string).}
-\item{metric}{The metric used to select the best set of parameters from the cross-validation. See the function 'metrics' for more details. Default is set to "ibs".}
-}
+
 
 \details{The hyper-parameters are 'm', 'mpos', 'mquant' and 'm_s'. For 'm', 'mpos' and 'mquant' it is only possible to do cross-valiation on one at the time. The user must input either multiple 'm' with 'mpos = NULL' and 'mquant = NULL' or only one 'm' and multiple differents knots 
 positions or quantile values."}
