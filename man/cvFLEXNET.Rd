@@ -45,7 +45,7 @@ be m_s+2 knots.}
 
 
 \details{The hyper-parameters are 'm', 'mpos', 'mquant' and 'm_s'. For 'm', 'mpos' and 'mquant' it is only possible to do cross-valiation on one at the time. The user must input either multiple 'm' with 'mpos = NULL' and 'mquant = NULL' or only one 'm' and multiple differents knots 
-positions or quantile values."}
+positions or quantile values.}
 
 \value{
 \item{optimal}{A list giving the optimal value for each parameter.}
