@@ -10,8 +10,7 @@ survivalFLEXNET <- function(formula, data, ratetable, m=3, mpos = NULL, mquant =
   if (missing(ratetable)) stop("a ratetable argument is required")
   if (as.character(class(formula)) != "formula") stop("The first argument must be a formula")
   if (as.character(class(data)) != "data.frame") stop("The second argument must be a data frame")
-  if (length(dim(ratetable))!=3) stop("The life table must have 3 dimensions: age, year, sex")
-  if (dim(ratetable)[3]!=2) stop("The life table must have 3 dimensions: age, year, sex")
+  if (length(dim(ratetable))!=3) stop("The life table must have 3 dimensions in thes order : age, year, sex")
   if(!is.null(init)){if(!is.numeric(init))stop("Argument 'init' must be a vector of numeric values.") }
   if(!is.numeric(delta_th))stop("'delta_th' must be numeric.")
   if(length(delta_th) != 1) stop("'delta_th' must be a single value.") 

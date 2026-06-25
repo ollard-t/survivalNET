@@ -18,8 +18,9 @@ right. The response must be a survival object as returned by the \code{Surv} fun
 side, it is necessary to specify a '+\code{ratetable}(age = age, year = year, sex = sex)' term. The 
 time must be in days.}
 \item{data}{A data frame in which to look for the variables included in the \code{formula}.}
-\item{ratetable}{A table of expected rates of the studied event, such as \code{fr.ratetable} for the
-mortality of the French population, i.e. an array with three dimensions: age, sex and year.}
+\item{ratetable}{A table of expected rates of the studied event, i.e an array with three dimensions
+in the order : age, sex and year, such as \code{fr.ratetable} for the mortality of the French 
+population.}
 \item{m}{A numeric value of the number of internal knots wanted. With the boundary knots, there will
 be m+2 knots.}
 \item{mpos}{A vector of the different m+2 knots values positions. The values must be specified on 
