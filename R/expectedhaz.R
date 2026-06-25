@@ -6,7 +6,7 @@ expectedhaz <- function(ratetable, age, year, sex, time, max_age = NULL, max_yea
 {
   time <- pmin(time, 1000000)
   .year <- as.numeric(format( as.Date(time + year, origin = "1960-01-01"), "%Y" ) ) 
-  .age <- round((age+time)/365.24)
+  .age <- floor((age+time)/365.24)
   if(is.null(max_age)){
     max_age <- max(as.numeric(dimnames(ratetable)[[1]]))
   }
