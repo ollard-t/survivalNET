@@ -8,7 +8,7 @@ Expected Instantaneous Hazard
 This function returns the expected instantaneous hazard from a rate table according to age, sex and year at baseline.
 }
 \usage{
-expectedhaz(ratetable, age, year, sex, time, max_age = NULL, max_year = NULL)
+expectedhaz(ratetable, age, year, sex, time)
 }
 
 \arguments{
