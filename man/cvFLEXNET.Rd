@@ -11,7 +11,7 @@ Cross-validation method for the hyper-parameters of an object of class \code{sur
 \usage{
 cvFLEXNET(formula, pro.time=NULL, data, ratetable, cv=10, 
                              m = 2, mpos = NULL, mquant = NULL, init = NULL,
-                             delta_th = 0, weights = NULL, m_s = NULL, Kref = NULL)
+                             delta_th = 0, weights = NULL, m_s = NULL, Kref = NULL, stand = NULL)
 }
 
 \arguments{
@@ -42,6 +42,8 @@ individuals. By default, the weights equal 1.}
 \item{m_s}{A list of numeric values of the number of internal knots wanted for the splines for each level of stratification. With the boundary knots, there will
 be m_s+2 knots.}
 \item{Kref}{The level of reference when stratifying on a covariate. Default value is NULL. If NULL the value taken will be the maximum one (if numeric) or the last alphabetically (if character string).}
+\item{stand}{A vector of the continuous variable names to standardize in the data set. Default value is NULL.}
+
 }
 
 \details{The hyper-parameters are 'm', 'mpos', 'mquant' and 'm_s'. For 'm', 'mpos' and 'mquant' it is only possible to do cross-valiation on one at the time. The user must input either multiple 'm' with 'mpos = NULL' and 'mquant = NULL' or only one 'm' and multiple differents knots 
@@ -59,7 +61,7 @@ data(fr.ratetable) # the table with the expected mortality rates
 tune.FLEX = cvFLEXNET(Surv(time, event) ~ stade + delay + 
     ratetable(age=age, year=year, sex=sexchara), data = dataK[1:99,],
     ratetable=fr.ratetable, cv = 2, m = c(1,2), mquant = NULL, init = NULL,
-                             delta_th = 0, weights = NULL, m_s = NULL, Kref = NULL, metric = "ibs")
+                             delta_th = 0, weights = NULL, m_s = NULL, Kref = NULL, metric = "ibs", stand = NULL)
 
 tune.FLEX$optimal
 

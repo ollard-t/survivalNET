@@ -1,7 +1,7 @@
 
 cvFLEXNET <- function(formula, pro.time=NULL, data, ratetable, cv=10, 
                        m = 2, mpos = NULL, mquant = NULL, init = NULL, delta_th = 0,
-                       weights = NULL, m_s = NULL, Kref = NULL){
+                       weights = NULL, m_s = NULL, Kref = NULL, stand = NULL){
   
   if (missing(formula)) stop("a formula argument is required")
   if (missing(data)) stop("a data argument is required")
@@ -169,10 +169,28 @@ cvFLEXNET <- function(formula, pro.time=NULL, data, ratetable, cv=10,
   
   .CVtune<-vector("list",cv*dim(.grid)[1])
   
+  if (!is.null(stand)) {
+    if (!is.character(stand))
+      stop("'standardize' must be a character vector of variable names.")
+    missing_vars <- setdiff(stand, names(data.net))
+    if (length(missing_vars) > 0)
+      stop("The following variables are not in 'data': ",
+           paste(missing_vars, collapse = ", "))
+  }
+
+  
   l<-1
   for (k in 1:cv){
+    trainSt <- data.net[data.net$folds != k, ]
+    validSt <- data.net[data.net$folds == k, ]
+    if (!is.null(stand)) {
+      muSt <- sapply(trainSt[, stand, drop = FALSE], mean)
+      sigmaSt <- sapply(trainSt[, stand, drop = FALSE], sd)
+      trainSt[, stand] <- scale(trainSt[, stand, drop = FALSE], center = muSt, scale = sigmaSt)
+      validSt[, stand] <- scale(validSt[, stand, drop = FALSE],center = muSt,scale = sigmaSt)
+    }
     for (j in 1:dim(.grid)[1]){
-      .CVtune[[l]]<-list(train=data.net[data.net$folds!=k, ], valid=data.net[data.net$folds==k, ], grid=.grid[j,], init = correstab[j,"init"])
+      .CVtune[[l]]<-list(train=trainSt, valid=validSt, grid=.grid[j,])
       l=l+1
     }
   }
@@ -349,7 +367,7 @@ cvFLEXNET <- function(formula, pro.time=NULL, data, ratetable, cv=10,
       
       model <- .modelsCV[[j]][[k]]
       
-      valid_data <- data.net[data.net$folds == k, ]
+      valid_data <- .CVtune[[(k - 1) * nrow(.grid) + 1]]$valid
       
       .measure[j, k] <- net.loglik(
         model = model,
