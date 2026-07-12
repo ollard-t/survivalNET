@@ -17,8 +17,8 @@ expectedhaz <- function(ratetable, age, year, sex, time, max_age = NULL, max_yea
   
   idx <- cbind(
     as.character(pmin(.age,  max_age)),
-    as.character(pmin(.year, max_year)),
-    sex
+    sex,
+    as.character(pmin(.year, max_year))
   )
   
   ratetable[idx]
