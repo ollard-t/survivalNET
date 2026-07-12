@@ -12,7 +12,7 @@ expectedhaz <- function(ratetable, age, year, sex, time, max_age = NULL, max_yea
   }
   
   if(is.null(max_year)){
-    max_year <- max(as.numeric(dimnames(ratetable)[[2]]))
+    max_year <- max(as.numeric(dimnames(ratetable)[[3]]))
   }
   
   idx <- cbind(
