@@ -5,7 +5,7 @@
 Expected Cummulative Hazard
 }
 \description{
-This function returns the expected cumulative hazard from a rate table according to age, year and sex at the baseline.
+This function returns the expected cumulative hazard from a rate table according to age, year and at baseline and sex.
 }
 \usage{
 expectedcumhaz(ratetable, age, year, sex, time, method="exact", subdivisions = 100)

@@ -5,7 +5,7 @@
 Expected Instantaneous Hazard
 }
 \description{
-This function returns the expected instantaneous hazard from a rate table according to age, year and at baseline.
+This function returns the expected instantaneous hazard from a rate table according to age, year and at baseline and sex.
 }
 \usage{
 expectedhaz(ratetable, age, year, sex, time, max_age = NULL, max_year = NULL)
