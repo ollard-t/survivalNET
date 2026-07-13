@@ -14,7 +14,7 @@ survivalNET <- function(formula, data, ratetable, dist="weibull", init = NULL, d
                    be a formula")
   if (as.character(class(data)) != "data.frame") stop("The second argument must
                    be a data frame")
-  if (!all(c("age", "sex", "year") %in% attr(ratetable, "dimid"))){stop("The ratetable must contain dimensions named 'age', 'year', and 'sex'.")
+  if (!all(c("age", "sex", "year") %in% attr(ratetable, "dimid"))){stop("The ratetable must contain dimensions named 'age', 'year', and 'sex'.")}
   if(!(dist %in% c("exponential","weibull","genweibull")))  stop("Argument 
                   'dist' must be 'exponential', 'weibull', or 'genweibull' ")
   if(!is.null(init)){if(!is.numeric(init))stop("Argument 'init' must be a vector of numeric values.") }

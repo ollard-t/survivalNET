@@ -10,8 +10,8 @@ survivalFLEXNET <- function(formula, data, ratetable, m=3, mpos = NULL, mquant =
   if (missing(ratetable)) stop("a ratetable argument is required")
   if (as.character(class(formula)) != "formula") stop("The first argument must be a formula")
   if (as.character(class(data)) != "data.frame") stop("The second argument must be a data frame")
-  if (!all(c("age", "sex", "year") %in% attr(ratetable, "dimid"))){stop("The ratetable must contain dimensions named 'age', 'year', and 'sex'.")
-  }  if(!is.null(init)){if(!is.numeric(init))stop("Argument 'init' must be a vector of numeric values.") }
+  if (!all(c("age", "sex", "year") %in% attr(ratetable, "dimid"))){stop("The ratetable must contain dimensions named 'age', 'year', and 'sex'.")}
+  if(!is.null(init)){if(!is.numeric(init))stop("Argument 'init' must be a vector of numeric values.") }
   if(!is.numeric(delta_th))stop("'delta_th' must be numeric.")
   if(length(delta_th) != 1) stop("'delta_th' must be a single value.") 
   if(!is.null(mpos) & !is.null(mquant))warning("'mpos' and 'mquant' have both been specified. 'mpos' values have been chosen over 'mquant' quantiles.") #ligne : mquant = NULL
