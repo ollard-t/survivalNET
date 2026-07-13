@@ -20,7 +20,7 @@ cvFLEXNET(formula, pro.time=NULL, data, ratetable, cv=10,
 of the times in chosen.}
 \item{data}{A data frame in which to look for the variables included in the \code{formula}.}
 \item{ratetable}{A table of expected rates of the studied event, such as \code{fr.ratetable} for
-the mortality of the French population, i.e. an array with three dimensions: age, sex and year.}
+the mortality of the French population, i.e. an array with three dimensions: age, year and sex.}
 \item{cv}{The number of splits for cross-validation. The default value is 10.}
 \item{m}{A list of numeric values of the number of internal knots wanted. With the boundary knots, there will
 be m+2 knots.}

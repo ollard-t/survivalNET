@@ -19,7 +19,7 @@ side, it is necessary to specify a '+\code{ratetable}(age = age, year = year, se
 time must be in days.}
 \item{data}{A data frame in which to look for the variables included in the \code{formula}.}
 \item{ratetable}{A table of expected rates of the studied event, i.e an array with three dimensions
-in the order : age, sex and year, such as \code{fr.ratetable} for the mortality of the French 
+in the order : age, year and sex, such as \code{fr.ratetable} for the mortality of the French 
 population.}
 \item{m}{A numeric value of the number of internal knots wanted. With the boundary knots, there will
 be m+2 knots.}
