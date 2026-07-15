@@ -15,11 +15,13 @@ expectedhaz <- function(ratetable, age, year, sex, time, max_age = NULL, max_yea
     max_year <- max(as.numeric(dimnames(ratetable)$year))
   }
   
-  idx <- cbind(
-    as.character(pmin(.age,  max_age)),
-    as.character(pmin(.year, max_year)),
-    sex
+  values <- list(
+    age  = as.character(pmin(.age, max_age)),
+    year = as.character(pmin(.year, max_year)),
+    sex  = sex
   )
+  
+  idx <- do.call(cbind, values[names(dimnames(ratetable))])
   
   ratetable[idx]
 }
